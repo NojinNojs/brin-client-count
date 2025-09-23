@@ -72,7 +72,7 @@ Connects to BRIN client count endpoints:
 
 ```bash
 # Clone the repository
-git clone <repository-url>
+git clone https://github.com/NojinNojs/brin-client-count.git
 cd brin-client-count
 
 # Install dependencies
