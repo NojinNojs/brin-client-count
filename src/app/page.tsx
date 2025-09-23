@@ -1,103 +1,88 @@
-import Image from "next/image";
+"use client";
+
+import { useState, useMemo, useCallback } from "react";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Filters } from "@/components/filters/Filters";
+import { ClientAreaChart } from "@/components/charts/ClientAreaChart";
+import { KpiSummary } from "@/components/kpi/KpiSummary";
+import type { LocationKey, MetricKey, SessionKey } from "@/lib/types";
+import { useClientCounts } from "@/lib/useClientCounts";
 
 export default function Home() {
-  return (
-    <div className="font-sans grid grid-rows-[20px_1fr_20px] items-center justify-items-center min-h-screen p-8 pb-20 gap-16 sm:p-20">
-      <main className="flex flex-col gap-[32px] row-start-2 items-center sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={180}
-          height={38}
-          priority
-        />
-        <ol className="font-mono list-inside list-decimal text-sm/6 text-center sm:text-left">
-          <li className="mb-2 tracking-[-.01em]">
-            Get started by editing{" "}
-            <code className="bg-black/[.05] dark:bg-white/[.06] font-mono font-semibold px-1 py-0.5 rounded">
-              src/app/page.tsx
-            </code>
-            .
-          </li>
-          <li className="tracking-[-.01em]">
-            Save and see your changes instantly.
-          </li>
-        </ol>
+  const [location, setLocation] = useState<LocationKey>("gatsu");
+  const [session, setSession] = useState<SessionKey>("pagi");
+  const [enabled, setEnabled] = useState<Record<MetricKey, boolean>>({ dhcp: true, dynamic: true, hotspot: true, guest: true });
 
-        <div className="flex gap-4 items-center flex-col sm:flex-row">
-          <a
-            className="rounded-full border border-solid border-transparent transition-colors flex items-center justify-center bg-foreground text-background gap-2 hover:bg-[#383838] dark:hover:bg-[#ccc] font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 sm:w-auto"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={20}
-              height={20}
-            />
-            Deploy now
-          </a>
-          <a
-            className="rounded-full border border-solid border-black/[.08] dark:border-white/[.145] transition-colors flex items-center justify-center hover:bg-[#f2f2f2] dark:hover:bg-[#1a1a1a] hover:border-transparent font-medium text-sm sm:text-base h-10 sm:h-12 px-4 sm:px-5 w-full sm:w-auto md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Read our docs
-          </a>
+  const { chartData, latest, loading, error, refetch } = useClientCounts({ location, session, metrics: Object.keys(enabled) as MetricKey[] });
+  const [range, setRange] = useState<"7d" | "1m" | "3m" | { from: number; to: number } | null>("7d");
+
+  // Memoized range calculation to avoid recalculating on every render
+  const filteredData = useMemo(() => {
+    if (!range) return chartData
+    const now = Date.now()
+    let from: number
+    if (typeof range === "string") {
+      if (range === "7d") from = now - 7 * 24 * 60 * 60 * 1000
+      else if (range === "1m") from = now - 30 * 24 * 60 * 60 * 1000
+      else from = now - 90 * 24 * 60 * 60 * 1000
+      return chartData.filter((d) => d.ts >= from)
+    }
+    return chartData.filter((d) => d.ts >= range.from && d.ts <= range.to)
+  }, [chartData, range]);
+
+  // Memoized change handlers to prevent unnecessary re-renders
+  const handleFilterChange = useCallback((n: { location?: LocationKey; session?: SessionKey }) => {
+    if (n.location) setLocation(n.location)
+    if (n.session) setSession(n.session)
+  }, []);
+
+  const handleMetricsChange = useCallback((m: Record<MetricKey, boolean>) => {
+    setEnabled(m)
+  }, []);
+
+  return (
+    <div className="font-sans min-h-dvh bg-[var(--background)] text-[var(--foreground)]">
+      <div className="max-w-[1200px] mx-auto p-4 sm:p-6 md:p-8">
+        <header className="mb-6">
+          <h1 className="text-2xl sm:text-3xl font-bold" style={{ color: "var(--primary)" }}>BRIN Client Count</h1>
+          <p className="text-sm text-muted-foreground">Select location and time session to explore client trends.</p>
+        </header>
+
+        <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
+          <Filters
+            location={location}
+            session={session}
+            onChange={handleFilterChange}
+            onRangeChange={setRange}
+            rangeValue={range ?? "7d"}
+            metrics={enabled}
+            onMetricsChange={handleMetricsChange}
+          />
+          <div className="flex gap-2">
+            <Button onClick={() => refetch()}>Refresh</Button>
+          </div>
         </div>
-      </main>
-      <footer className="row-start-3 flex gap-[24px] flex-wrap items-center justify-center">
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/file.svg"
-            alt="File icon"
-            width={16}
-            height={16}
-          />
-          Learn
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/window.svg"
-            alt="Window icon"
-            width={16}
-            height={16}
-          />
-          Examples
-        </a>
-        <a
-          className="flex items-center gap-2 hover:underline hover:underline-offset-4"
-          href="https://nextjs.org?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          <Image
-            aria-hidden
-            src="/globe.svg"
-            alt="Globe icon"
-            width={16}
-            height={16}
-          />
-          Go to nextjs.org →
-        </a>
-      </footer>
+
+        <Card>
+          <CardHeader>
+            <CardTitle className="font-semibold" style={{ fontFamily: "var(--font-heading)" }}>
+              Client Trend — {location === "gatsu" ? "Gatot Subroto" : location.charAt(0).toUpperCase() + location.slice(1)} / {session === "pagi" ? "Morning" : "Afternoon"}
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            {error ? (
+              <div className="text-destructive text-sm">{error}</div>
+            ) : (
+              <ClientAreaChart data={filteredData} enabled={enabled} />
+            )}
+            {loading && <div className="text-sm text-muted-foreground mt-2">Loading…</div>}
+            <div className="mt-4">
+              <KpiSummary latest={latest} />
+            </div>
+          </CardContent>
+        </Card>
+      </div>
     </div>
   );
 }
