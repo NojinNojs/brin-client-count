@@ -15,21 +15,14 @@ export default function Home() {
   const [enabled, setEnabled] = useState<Record<MetricKey, boolean>>({ dhcp: true, dynamic: true, hotspot: true, guest: true });
 
   const { chartData, latest, loading, error, refetch } = useClientCounts({ location, session, metrics: Object.keys(enabled) as MetricKey[] });
-  const [range, setRange] = useState<"7d" | "1m" | "3m" | { from: number; to: number } | null>("7d");
+  const [dataCount, setDataCount] = useState<"10" | "20" | "30" | "all" | number>("10");
 
-  // Memoized range calculation to avoid recalculating on every render
+  // Memoized data count filtering to avoid recalculating on every render
   const filteredData = useMemo(() => {
-    if (!range) return chartData
-    const now = Date.now()
-    let from: number
-    if (typeof range === "string") {
-      if (range === "7d") from = now - 7 * 24 * 60 * 60 * 1000
-      else if (range === "1m") from = now - 30 * 24 * 60 * 60 * 1000
-      else from = now - 90 * 24 * 60 * 60 * 1000
-      return chartData.filter((d) => d.ts >= from)
-    }
-    return chartData.filter((d) => d.ts >= range.from && d.ts <= range.to)
-  }, [chartData, range]);
+    if (dataCount === "all") return chartData
+    const count = typeof dataCount === "number" ? dataCount : parseInt(dataCount)
+    return chartData.slice(-count) // Get the last N items
+  }, [chartData, dataCount]);
 
   // Memoized change handlers to prevent unnecessary re-renders
   const handleFilterChange = useCallback((n: { location?: LocationKey; session?: SessionKey }) => {
@@ -54,8 +47,8 @@ export default function Home() {
             location={location}
             session={session}
             onChange={handleFilterChange}
-            onRangeChange={setRange}
-            rangeValue={range ?? "7d"}
+            onDataCountChange={setDataCount}
+            dataCountValue={dataCount}
             metrics={enabled}
             onMetricsChange={handleMetricsChange}
           />

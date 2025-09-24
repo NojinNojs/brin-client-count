@@ -2,7 +2,7 @@
 
 import React, { useCallback } from "react"
 import type { LocationKey, SessionKey, MetricKey } from "@/lib/types"
-import { DateRangeDropdown } from "./DateRangeDropdown"
+import { DataCountDropdown } from "./DataCountDropdown"
 import { MetricsDropdown } from "./MetricsDropdown"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
@@ -11,8 +11,8 @@ type Props = {
   location: LocationKey
   session: SessionKey
   onChange: (next: { location?: LocationKey; session?: SessionKey }) => void
-  onRangeChange?: (range: "7d" | "1m" | "3m" | { from: number; to: number }) => void
-  rangeValue?: "7d" | "1m" | "3m" | { from: number; to: number }
+  onDataCountChange?: (count: "10" | "20" | "30" | "all" | number) => void
+  dataCountValue?: "10" | "20" | "30" | "all" | number
   metrics?: Record<MetricKey, boolean>
   onMetricsChange?: (next: Record<MetricKey, boolean>) => void
 }
@@ -32,8 +32,8 @@ export const Filters = React.memo(function Filters({
   location,
   session,
   onChange,
-  onRangeChange,
-  rangeValue = "7d",
+  onDataCountChange,
+  dataCountValue = "10",
   metrics,
   onMetricsChange
 }: Props) {
@@ -90,10 +90,10 @@ export const Filters = React.memo(function Filters({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      {onRangeChange && (
+      {onDataCountChange && (
         <div className="flex items-center gap-2">
-          <label className="text-sm">Range</label>
-          <DateRangeDropdown value={rangeValue} onChange={onRangeChange} />
+          <label className="text-sm">Data Count</label>
+          <DataCountDropdown value={dataCountValue} onChange={onDataCountChange} />
         </div>
       )}
       {metrics && onMetricsChange && (
