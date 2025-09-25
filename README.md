@@ -210,17 +210,20 @@ pnpm build
 
 ### Team Development Workflow
 ```bash
+# Set the default branch (adjust as needed for your repository)
+export BRANCH_NAME=master  # or 'main' if your repo uses main as default
+
 # 1. Developer makes changes
 git add .
 git commit -m "Add new feature"
-git push origin main
+git push origin $BRANCH_NAME
 
 # 2. Build and push to Docker Hub (if needed)
 npm run docker:build
 npm run docker:push
 
 # 3. Other team members pull latest
-git pull origin main
+git pull origin $BRANCH_NAME
 docker-compose --profile dev up --build
 ```
 

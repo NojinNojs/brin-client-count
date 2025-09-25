@@ -35,8 +35,16 @@ export const Filters = React.memo(function Filters({
   metrics,
   onMetricsChange
 }: Props) {
-  // Get dynamic kawasan list from environment
-  const kawasanList = useMemo(() => getKawasanList(), [])
+  // Get dynamic kawasan list from environment with safe fallback
+  const kawasanList = useMemo(() => {
+    try {
+      const list = getKawasanList();
+      return list && list.length > 0 ? list : ["gatsu"];
+    } catch (error) {
+      console.error("Failed to load kawasan list from environment:", error);
+      return ["gatsu"];
+    }
+  }, [])
   
   // Memoized event handlers to prevent child re-renders
   const handleLocationChange = useCallback((l: LocationKey) => {

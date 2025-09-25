@@ -33,7 +33,10 @@ export const getApiConfig = () => {
     throw new Error('NEXT_PUBLIC_API_PORT environment variable is required')
   }
   
-  return { apiUrl, apiPort }
+  return { 
+    apiUrl: String(apiUrl), 
+    apiPort: String(apiPort) 
+  }
 }
 
 export const getKawasanList = (): string[] => {
