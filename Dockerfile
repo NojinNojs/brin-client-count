@@ -63,7 +63,7 @@ RUN echo "Validating build arguments..." && \
         echo "ERROR: NEXT_PUBLIC_KAWASAN build argument is required but not provided"; \
         exit 1; \
     fi && \
-    if ! echo "$NEXT_PUBLIC_KAWASAN" | jq empty 2>/dev/null; then \
+    if ! echo "$NEXT_PUBLIC_KAWASAN" | jq -e 'type=="array"' >/dev/null; 2>&1; then \
         echo "ERROR: NEXT_PUBLIC_KAWASAN must be valid JSON array, got: $NEXT_PUBLIC_KAWASAN"; \
         exit 1; \
     fi && \
