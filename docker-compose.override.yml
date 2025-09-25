@@ -1,0 +1,17 @@
+# docker-compose.override.yml
+# File ini akan otomatis dimuat oleh docker-compose
+# Berguna untuk konfigurasi development yang berbeda
+
+version: '3.8'
+
+services:
+  app-dev:
+    environment:
+      - NODE_ENV=development
+      - NEXT_TELEMETRY_DISABLED=1
+    volumes:
+      - .:/app
+      - /app/node_modules
+      - /app/.next
+    stdin_open: true
+    tty: true
