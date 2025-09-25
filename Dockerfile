@@ -33,6 +33,10 @@ COPY . .
 
 # Build application
 ENV NEXT_TELEMETRY_DISABLED 1
+ENV DOCKER_BUILD=true
+ENV NEXT_PUBLIC_API_URL=10.13.222.10
+ENV NEXT_PUBLIC_API_PORT=5010
+ENV NEXT_PUBLIC_KAWASAN='["gatsu", "ancol", "pejaten"]'
 RUN pnpm run build
 
 # Stage 3: Runner
@@ -43,10 +47,7 @@ WORKDIR /app
 ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
 
-# Default environment variables (can be overridden at runtime)
-ENV API_URL=10.13.222.10
-ENV API_PORT=5010
-ENV KAWASAN='["gatsu", "ancol", "pejaten"]'
+# Runtime environment variables (build-time vars are already inlined)
 
 # Create non-root user untuk security
 RUN addgroup --system --gid 1001 nodejs
