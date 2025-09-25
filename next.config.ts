@@ -1,14 +1,14 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Enable standalone output for Docker (disabled for Windows development)
-  // output: 'standalone',
+  // Enable standalone output for Docker (only when building for Docker)
+  ...(process.env.DOCKER_BUILD === 'true' ? { output: 'standalone' } : {}),
   
   // Environment variables for client-side
   env: {
-    API_URL: process.env.API_URL,
-    API_PORT: process.env.API_PORT,
-    KAWASAN: process.env.KAWASAN,
+    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
+    NEXT_PUBLIC_API_PORT: process.env.NEXT_PUBLIC_API_PORT,
+    NEXT_PUBLIC_KAWASAN: process.env.NEXT_PUBLIC_KAWASAN,
   },
   
   // Enable experimental features for better performance

@@ -33,20 +33,31 @@ COPY . .
 
 # Build application (without standalone for Windows compatibility)
 ENV NEXT_TELEMETRY_DISABLED 1
+
+# Build-time arguments with defaults
+ARG NEXT_PUBLIC_API_URL=10.13.222.10
+ARG NEXT_PUBLIC_API_PORT=5010
+ARG NEXT_PUBLIC_KAWASAN=["gatsu","ancol","pejaten"]
+
+# Set environment variables from build args
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+ENV NEXT_PUBLIC_API_PORT=${NEXT_PUBLIC_API_PORT}
+ENV NEXT_PUBLIC_KAWASAN=${NEXT_PUBLIC_KAWASAN}
+
 RUN pnpm run build
 
 # Stage 3: Runner
 FROM node:20-alpine AS runner
 WORKDIR /app
 
+# Install pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
 # Set environment
 ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
 
-# Default environment variables (can be overridden at runtime)
-ENV API_URL=10.13.222.10
-ENV API_PORT=5010
-ENV KAWASAN='["gatsu", "ancol", "pejaten"]'
+# Runtime environment variables (build-time vars are already inlined)
 
 # Create non-root user untuk security
 RUN addgroup --system --gid 1001 nodejs
@@ -54,9 +65,9 @@ RUN adduser --system --uid 1001 nextjs
 
 # Copy built application (standard Next.js output)
 COPY --from=builder /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-COPY --from=builder --chown=nextjs:nodejs /app/.next/server ./.next/server
+COPY --from=builder --chown=nextjs:nodejs /app/.next ./.next
 COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
+COPY --from=builder --chown=nextjs:nodejs /app/pnpm-lock.yaml ./pnpm-lock.yaml
 
 # Install only production dependencies
 RUN pnpm install --prod --frozen-lockfile

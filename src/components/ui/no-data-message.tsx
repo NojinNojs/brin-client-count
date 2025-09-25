@@ -13,7 +13,7 @@ export function NoDataMessage({
 }: NoDataMessageProps) {
   return (
     <div className={`flex flex-col items-center justify-center py-12 px-4 text-center ${className}`}>
-      <MdDataUsage className="w-16 h-16 text-muted-foreground/50 mb-4" />
+      <MdDataUsage className="w-16 h-16 text-muted-foreground/50 mb-4" aria-hidden="true" />
       <h3 className="text-lg font-medium text-muted-foreground mb-2">
         {message}
       </h3>

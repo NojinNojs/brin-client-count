@@ -28,11 +28,47 @@ COPY package.json pnpm-lock.yaml* ./
 # Install all dependencies (including devDependencies for build)
 RUN pnpm install --frozen-lockfile
 
+# Install jq for JSON validation
+RUN apk add --no-cache jq
+
 # Copy source code
 COPY . .
 
 # Build application
 ENV NEXT_TELEMETRY_DISABLED 1
+ENV DOCKER_BUILD=true
+
+# Build-time arguments (no defaults to prevent leaking sensitive data)
+ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_API_PORT
+ARG NEXT_PUBLIC_KAWASAN
+
+# Set environment variables from build args
+# These will fail if not provided, preventing accidental leaks
+ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
+ENV NEXT_PUBLIC_API_PORT=${NEXT_PUBLIC_API_PORT}
+ENV NEXT_PUBLIC_KAWASAN=${NEXT_PUBLIC_KAWASAN}
+
+# Build-time validation of required arguments
+RUN echo "Validating build arguments..." && \
+    if [ -z "$NEXT_PUBLIC_API_URL" ]; then \
+        echo "ERROR: NEXT_PUBLIC_API_URL build argument is required but not provided"; \
+        exit 1; \
+    fi && \
+    if [ -z "$NEXT_PUBLIC_API_PORT" ]; then \
+        echo "ERROR: NEXT_PUBLIC_API_PORT build argument is required but not provided"; \
+        exit 1; \
+    fi && \
+    if [ -z "$NEXT_PUBLIC_KAWASAN" ]; then \
+        echo "ERROR: NEXT_PUBLIC_KAWASAN build argument is required but not provided"; \
+        exit 1; \
+    fi && \
+    if ! echo "$NEXT_PUBLIC_KAWASAN" | jq -e 'type=="array"' >/dev/null; 2>&1; then \
+        echo "ERROR: NEXT_PUBLIC_KAWASAN must be valid JSON array, got: $NEXT_PUBLIC_KAWASAN"; \
+        exit 1; \
+    fi && \
+    echo "Build arguments validation passed"
+
 RUN pnpm run build
 
 # Stage 3: Runner
@@ -43,10 +79,7 @@ WORKDIR /app
 ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
 
-# Default environment variables (can be overridden at runtime)
-ENV API_URL=10.13.222.10
-ENV API_PORT=5010
-ENV KAWASAN='["gatsu", "ancol", "pejaten"]'
+# Runtime environment variables (build-time vars are already inlined)
 
 # Create non-root user untuk security
 RUN addgroup --system --gid 1001 nodejs

@@ -13,8 +13,16 @@ import { getKawasanList, getLocationLabel } from "@/lib/types";
 import { useClientCounts } from "@/lib/useClientCounts";
 
 export default function Home() {
-  // Use first kawasan from env as default
-  const defaultLocation = useMemo(() => getKawasanList()[0] || "gatsu", []);
+  // Use first kawasan from env as default with safe fallback
+  const defaultLocation = useMemo(() => {
+    try {
+      const kawasanList = getKawasanList();
+      return kawasanList[0] || "gatsu";
+    } catch (error) {
+      console.error("Failed to load kawasan list from environment:", error);
+      return "gatsu";
+    }
+  }, []);
   const [location, setLocation] = useState<LocationKey>(defaultLocation);
   const [session, setSession] = useState<SessionKey>("pagi");
   const [enabled, setEnabled] = useState<Record<MetricKey, boolean>>({ dhcp: true, dynamic: true, hotspot: true, guest: true });
