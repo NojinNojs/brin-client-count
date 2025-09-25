@@ -8,16 +8,10 @@
     "start": "next start",
     "lint": "eslint",
     "docker:dev": "docker-compose --profile dev up --build",
-    "docker:prod": "docker-compose --profile prod up --build",
-    "docker:hub": "docker-compose --profile hub up",
-    "docker:hub-dev": "docker-compose --profile hub-dev up",
+    "docker:prod": "docker run -d -p 3000:3000 --name brin-client-count nojinnojs/brin-client-count:latest",
     "docker:build": "docker build -t brin-client-count .",
-    "docker:build-dev": "docker build -f Dockerfile.dev -t brin-client-count:dev .",
-    "docker:run": "docker run -p 3000:3000 brin-client-count",
-    "docker:run-dev": "docker run -p 3000:3000 -v $(pwd):/app -v /app/node_modules brin-client-count:dev",
-    "docker:push": "docker push nojinnojs/brin-client-count:latest && docker push nojinnojs/brin-client-count:dev",
-    "docker:tag": "docker tag brin-client-count nojinnojs/brin-client-count:latest && docker tag brin-client-count:dev nojinnojs/brin-client-count:dev",
-    "docker:clean": "docker system prune -f && docker volume prune -f"
+    "docker:push": "docker tag brin-client-count nojinnojs/brin-client-count:latest && docker push nojinnojs/brin-client-count:latest",
+    "docker:stop": "docker stop brin-client-count && docker rm brin-client-count"
   },
   "dependencies": {
     "@radix-ui/react-checkbox": "^1.3.3",

@@ -1,33 +1,39 @@
 # Dockerfile
-# Multi-stage build untuk optimasi ukuran image
-# Compatible dengan Docker Hub
+# Multi-stage build for production deployment
+# Compatible with Docker Hub
 
 # Stage 1: Dependencies
 FROM node:20-alpine AS deps
 WORKDIR /app
 
+# Install pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
 # Copy package files
-COPY package.json package-lock.json ./
+COPY package.json pnpm-lock.yaml* ./
 
 # Install production dependencies only
-RUN npm ci --only=production --frozen-lockfile
+RUN pnpm install --frozen-lockfile --prod
 
 # Stage 2: Builder
 FROM node:20-alpine AS builder
 WORKDIR /app
 
+# Install pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
 # Copy package files
-COPY package.json package-lock.json ./
+COPY package.json pnpm-lock.yaml* ./
 
 # Install all dependencies (including devDependencies for build)
-RUN npm ci --frozen-lockfile
+RUN pnpm install --frozen-lockfile
 
 # Copy source code
 COPY . .
 
-# Build aplikasi
+# Build application
 ENV NEXT_TELEMETRY_DISABLED 1
-RUN npm run build
+RUN pnpm run build
 
 # Stage 3: Runner
 FROM node:20-alpine AS runner

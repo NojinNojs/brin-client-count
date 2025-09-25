@@ -3,11 +3,14 @@ FROM node:20-alpine
 
 WORKDIR /app
 
+# Install pnpm
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
 # Copy package files
-COPY package.json package-lock.json ./
+COPY package.json pnpm-lock.yaml* ./
 
 # Install dependencies
-RUN npm ci
+RUN pnpm install
 
 # Copy source code
 COPY . .
@@ -16,4 +19,4 @@ COPY . .
 EXPOSE 3000
 
 # Start development server
-CMD ["npm", "run", "dev"]
+CMD ["pnpm", "run", "dev"]

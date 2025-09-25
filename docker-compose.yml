@@ -54,6 +54,6 @@ services:
       - /app/.next
     environment:
       - NODE_ENV=development
-    command: npm run dev
+    command: pnpm run dev
     profiles:
       - hub-dev

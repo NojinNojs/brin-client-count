@@ -3,7 +3,7 @@
 version: '3.8'
 
 services:
-  brin-dashboard:
+  brin-client-count:
     image: nojinnojs/brin-client-count:latest
     ports:
       - "3000:3000"
@@ -18,5 +18,5 @@ services:
       start_period: 40s
     labels:
       - "traefik.enable=true"
-      - "traefik.http.routers.brin-dashboard.rule=Host(`brin-dashboard.local`)"
-      - "traefik.http.services.brin-dashboard.loadbalancer.server.port=3000"
+      - "traefik.http.routers.brin-client-count.rule=Host(`brin-client-count.local`)"
+      - "traefik.http.services.brin-client-count.loadbalancer.server.port=3000"
