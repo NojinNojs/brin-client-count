@@ -10,6 +10,7 @@
     "docker:dev": "docker-compose --profile dev up --build",
     "docker:prod": "docker run -d -p 3000:3000 --name brin-client-count nojinnojs/brin-client-count:latest",
     "docker:build": "docker build -t brin-client-count .",
+    "docker:build:windows": "docker build -f Dockerfile.windows -t brin-client-count:windows .",
     "docker:push": "docker tag brin-client-count nojinnojs/brin-client-count:latest && docker push nojinnojs/brin-client-count:latest",
     "docker:stop": "docker stop brin-client-count && docker rm brin-client-count"
   },
@@ -20,11 +21,13 @@
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
+    "dotenv": "^17.2.2",
     "lucide-react": "^0.544.0",
     "next": "15.5.3",
     "react": "19.1.0",
     "react-day-picker": "^9.11.0",
     "react-dom": "19.1.0",
+    "react-icons": "^5.5.0",
     "recharts": "^2.15.4",
     "tailwind-merge": "^3.3.1"
   },

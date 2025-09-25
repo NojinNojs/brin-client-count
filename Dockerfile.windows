@@ -1,5 +1,5 @@
-# Dockerfile
-# Multi-stage build for production deployment
+# Dockerfile.windows
+# Multi-stage build for Windows development
 # Compatible with Docker Hub
 
 # Stage 1: Dependencies
@@ -31,7 +31,7 @@ RUN pnpm install --frozen-lockfile
 # Copy source code
 COPY . .
 
-# Build application
+# Build application (without standalone for Windows compatibility)
 ENV NEXT_TELEMETRY_DISABLED 1
 RUN pnpm run build
 
@@ -52,10 +52,14 @@ ENV KAWASAN='["gatsu", "ancol", "pejaten"]'
 RUN addgroup --system --gid 1001 nodejs
 RUN adduser --system --uid 1001 nextjs
 
-# Copy built application
+# Copy built application (standard Next.js output)
 COPY --from=builder /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+COPY --from=builder --chown=nextjs:nodejs /app/.next/server ./.next/server
+COPY --from=builder --chown=nextjs:nodejs /app/package.json ./package.json
+
+# Install only production dependencies
+RUN pnpm install --prod --frozen-lockfile
 
 # Switch ke non-root user
 USER nextjs
@@ -72,4 +76,4 @@ HEALTHCHECK --interval=30s --timeout=3s --start-period=5s --retries=3 \
   CMD node -e "require('http').get('http://localhost:3000/api/health', (res) => { process.exit(res.statusCode === 200 ? 0 : 1) })"
 
 # Start aplikasi
-CMD ["node", "server.js"]
+CMD ["pnpm", "start"]

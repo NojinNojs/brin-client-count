@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useState, useRef } from "react"
 import type { ClientCountItem, ClientCountResponse, LocationKey, MetricKey, SessionKey } from "./types"
+import { getApiConfig } from "./types"
 import { toLocalDateLabel } from "./utils"
 
 export type UseClientCountsOptions = {
@@ -19,7 +20,10 @@ export function useClientCounts({ location, session }: UseClientCountsOptions) {
   // Cache for API responses to avoid duplicate requests
   const cacheRef = useRef<Map<string, ClientCountItem[]>>(new Map())
 
-  const endpoint = useMemo(() => `http://10.13.222.10:5010/client-count/${location}/${session}`, [location, session])
+  const endpoint = useMemo(() => {
+    const { apiUrl, apiPort } = getApiConfig()
+    return `http://${apiUrl}:${apiPort}/client-count/${location}/${session}`
+  }, [location, session])
 
   const fetchData = useCallback(async (forceRefresh = false) => {
     // Check cache first
