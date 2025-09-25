@@ -4,6 +4,7 @@ import { useMemo } from "react"
 import type { MetricKey } from "@/lib/types"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuCheckboxItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
+import { MdAnalytics } from "react-icons/md"
 
 type Props = {
   value: Record<MetricKey, boolean>
@@ -25,7 +26,8 @@ export function MetricsDropdown({ value, onChange }: Props) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm">
+        <Button variant="outline" size="sm" className="flex items-center gap-2">
+          <MdAnalytics className="w-4 h-4" />
           {label}
         </Button>
       </DropdownMenuTrigger>

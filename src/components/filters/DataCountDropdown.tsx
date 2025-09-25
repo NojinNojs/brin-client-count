@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
+import { MdDataUsage } from "react-icons/md"
 
 type DataCountValue = "10" | "20" | "30" | "all" | number
 
@@ -45,7 +46,8 @@ export function DataCountDropdown({ value, onChange }: Props) {
   return (
     <DropdownMenu>
       <DropdownMenuTrigger asChild>
-        <Button variant="outline" size="sm">
+        <Button variant="outline" size="sm" className="flex items-center gap-2">
+          <MdDataUsage className="w-4 h-4" />
           {label}
         </Button>
       </DropdownMenuTrigger>

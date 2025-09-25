@@ -3,14 +3,19 @@
 import { useState, useMemo, useCallback } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
+import { NoDataMessage } from "@/components/ui/no-data-message";
 import { Filters } from "@/components/filters/Filters";
 import { ClientAreaChart } from "@/components/charts/ClientAreaChart";
 import { KpiSummary } from "@/components/kpi/KpiSummary";
+import { MdRefresh } from "react-icons/md";
 import type { LocationKey, MetricKey, SessionKey } from "@/lib/types";
+import { getKawasanList, getLocationLabel } from "@/lib/types";
 import { useClientCounts } from "@/lib/useClientCounts";
 
 export default function Home() {
-  const [location, setLocation] = useState<LocationKey>("gatsu");
+  // Use first kawasan from env as default
+  const defaultLocation = useMemo(() => getKawasanList()[0] || "gatsu", []);
+  const [location, setLocation] = useState<LocationKey>(defaultLocation);
   const [session, setSession] = useState<SessionKey>("pagi");
   const [enabled, setEnabled] = useState<Record<MetricKey, boolean>>({ dhcp: true, dynamic: true, hotspot: true, guest: true });
 
@@ -53,19 +58,24 @@ export default function Home() {
             onMetricsChange={handleMetricsChange}
           />
           <div className="flex gap-2">
-            <Button onClick={() => refetch()}>Refresh</Button>
+            <Button onClick={() => refetch()} className="flex items-center gap-2">
+              <MdRefresh className="w-4 h-4" />
+              Refresh
+            </Button>
           </div>
         </div>
 
         <Card>
           <CardHeader>
             <CardTitle className="font-semibold" style={{ fontFamily: "var(--font-heading)" }}>
-              Client Trend — {location === "gatsu" ? "Gatot Subroto" : location.charAt(0).toUpperCase() + location.slice(1)} / {session === "pagi" ? "Morning" : "Afternoon"}
+              Client Trend — {getLocationLabel(location)} / {session === "pagi" ? "Morning" : "Afternoon"}
             </CardTitle>
           </CardHeader>
           <CardContent>
             {error ? (
               <div className="text-destructive text-sm">{error}</div>
+            ) : filteredData.length === 0 ? (
+              <NoDataMessage message="No data available for the selected location and session" />
             ) : (
               <ClientAreaChart data={filteredData} enabled={enabled} />
             )}

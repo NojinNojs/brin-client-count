@@ -1,11 +1,13 @@
 "use client"
 
-import React, { useCallback } from "react"
+import React, { useCallback, useMemo } from "react"
 import type { LocationKey, SessionKey, MetricKey } from "@/lib/types"
+import { getKawasanList, getLocationLabel } from "@/lib/types"
 import { DataCountDropdown } from "./DataCountDropdown"
 import { MetricsDropdown } from "./MetricsDropdown"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
+import { MdLocationOn, MdAccessTime } from "react-icons/md"
 
 type Props = {
   location: LocationKey
@@ -17,11 +19,7 @@ type Props = {
   onMetricsChange?: (next: Record<MetricKey, boolean>) => void
 }
 
-const locationLabel: Record<LocationKey, string> = {
-  gatsu: "Gatot Subroto",
-  ancol: "Ancol",
-  pejaten: "Pejaten",
-}
+// Dynamic location mapping - now supports any kawasan from env
 
 const timeLabel: Record<SessionKey, string> = {
   pagi: "Morning",
@@ -37,6 +35,9 @@ export const Filters = React.memo(function Filters({
   metrics,
   onMetricsChange
 }: Props) {
+  // Get dynamic kawasan list from environment
+  const kawasanList = useMemo(() => getKawasanList(), [])
+  
   // Memoized event handlers to prevent child re-renders
   const handleLocationChange = useCallback((l: LocationKey) => {
     onChange({ location: l })
@@ -49,31 +50,39 @@ export const Filters = React.memo(function Filters({
   return (
     <div className="flex flex-wrap gap-3 items-center">
       <div className="flex items-center gap-2">
-        <label className="text-sm">Location</label>
+        <label className="text-sm flex items-center gap-1">
+          <MdLocationOn className="w-4 h-4" />
+          Location
+        </label>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm">
-              {locationLabel[location]}
+            <Button variant="outline" size="sm" className="flex items-center gap-2">
+              <MdLocationOn className="w-4 h-4" />
+              {getLocationLabel(location)}
             </Button>
           </DropdownMenuTrigger>
           <DropdownMenuContent>
-            {(Object.keys(locationLabel) as LocationKey[]).map((l) => (
+            {kawasanList.map((kawasan) => (
               <DropdownMenuItem
-                key={l}
-                onClick={() => handleLocationChange(l)}
-                className={location === l ? "bg-accent text-accent-foreground" : ""}
+                key={kawasan}
+                onClick={() => handleLocationChange(kawasan)}
+                className={location === kawasan ? "bg-accent text-accent-foreground" : ""}
               >
-                {locationLabel[l]}
+                {getLocationLabel(kawasan)}
               </DropdownMenuItem>
             ))}
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
       <div className="flex items-center gap-2">
-        <label className="text-sm">Session</label>
+        <label className="text-sm flex items-center gap-1">
+          <MdAccessTime className="w-4 h-4" />
+          Session
+        </label>
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <Button variant="outline" size="sm">
+            <Button variant="outline" size="sm" className="flex items-center gap-2">
+              <MdAccessTime className="w-4 h-4" />
               {timeLabel[session]}
             </Button>
           </DropdownMenuTrigger>
