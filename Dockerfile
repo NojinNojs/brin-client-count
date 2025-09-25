@@ -28,6 +28,9 @@ COPY package.json pnpm-lock.yaml* ./
 # Install all dependencies (including devDependencies for build)
 RUN pnpm install --frozen-lockfile
 
+# Install jq for JSON validation
+RUN apk add --no-cache jq
+
 # Copy source code
 COPY . .
 
@@ -45,6 +48,26 @@ ARG NEXT_PUBLIC_KAWASAN
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 ENV NEXT_PUBLIC_API_PORT=${NEXT_PUBLIC_API_PORT}
 ENV NEXT_PUBLIC_KAWASAN=${NEXT_PUBLIC_KAWASAN}
+
+# Build-time validation of required arguments
+RUN echo "Validating build arguments..." && \
+    if [ -z "$NEXT_PUBLIC_API_URL" ]; then \
+        echo "ERROR: NEXT_PUBLIC_API_URL build argument is required but not provided"; \
+        exit 1; \
+    fi && \
+    if [ -z "$NEXT_PUBLIC_API_PORT" ]; then \
+        echo "ERROR: NEXT_PUBLIC_API_PORT build argument is required but not provided"; \
+        exit 1; \
+    fi && \
+    if [ -z "$NEXT_PUBLIC_KAWASAN" ]; then \
+        echo "ERROR: NEXT_PUBLIC_KAWASAN build argument is required but not provided"; \
+        exit 1; \
+    fi && \
+    if ! echo "$NEXT_PUBLIC_KAWASAN" | jq empty 2>/dev/null; then \
+        echo "ERROR: NEXT_PUBLIC_KAWASAN must be valid JSON array, got: $NEXT_PUBLIC_KAWASAN"; \
+        exit 1; \
+    fi && \
+    echo "Build arguments validation passed"
 
 RUN pnpm run build
 

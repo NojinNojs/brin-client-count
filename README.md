@@ -71,15 +71,9 @@ Create `.env` file in root directory:
 ```bash
 # Create .env file with your configuration
 cat > .env << EOF
-# API Configuration (REQUIRED)
-API_URL=10.13.222.10
-API_PORT=5010
-
-# Available Kawasan/Locations (REQUIRED - JSON array format)
-KAWASAN=["gatsu", "thamrin", "ancol", "pejaten"]
-
 # Build-time arguments for Docker (REQUIRED for building)
-NEXT_PUBLIC_API_URL=10.13.222.10
+# These are NEXT_PUBLIC_* variables used by the client and must be passed as docker build-args
+NEXT_PUBLIC_API_URL=203.0.113.10
 NEXT_PUBLIC_API_PORT=5010
 NEXT_PUBLIC_KAWASAN=["gatsu", "thamrin", "ancol", "pejaten"]
 EOF
@@ -88,35 +82,42 @@ EOF
 **Required Configuration:**
 
 ```env
-# API Configuration (REQUIRED)
-API_URL=10.13.222.10
-API_PORT=5010
-
-# Available Kawasan/Locations (REQUIRED - JSON array format)
-KAWASAN=["gatsu", "thamrin", "ancol", "pejaten"]
+# Build-time arguments for Docker (REQUIRED for building)
+# These are NEXT_PUBLIC_* variables used by the client and must be passed as docker build-args
+NEXT_PUBLIC_API_URL=203.0.113.10
+NEXT_PUBLIC_API_PORT=5010
+NEXT_PUBLIC_KAWASAN=["gatsu", "thamrin", "ancol", "pejaten"]
 ```
 
 **Note:** All environment variables are mandatory. The application will throw an error if any are missing or invalid.
 
-### Docker with Environment Variables
+⚠️ **Important**: These are build-time `NEXT_PUBLIC_*` variables that are baked into the client bundle during Docker build. They cannot be changed at runtime - you must rebuild the Docker image to change these values.
 
-⚠️ **All environment variables are required** - Container will fail to start without them.
+### Docker Build vs Runtime Variables
+
+**Build-time variables** (NEXT_PUBLIC_*): Must be provided during `docker build` and are baked into the client bundle.
+
+**Runtime variables** (API_URL, API_PORT, KAWASAN): Used by the server-side application and can be provided during `docker run`.
 
 ```bash
-# REQUIRED: Run with environment variables
+# Build with build-time variables
+docker build \
+  --build-arg NEXT_PUBLIC_API_URL=203.0.113.10 \
+  --build-arg NEXT_PUBLIC_API_PORT=5010 \
+  --build-arg NEXT_PUBLIC_KAWASAN='["gatsu", "thamrin", "ancol", "pejaten"]' \
+  -t brin-client-count .
+
+# Run with runtime variables (if needed by server-side code)
 docker run -d -p 3000:3000 \
-  -e API_URL=10.13.222.10 \
+  -e API_URL=203.0.113.10 \
   -e API_PORT=5010 \
   -e KAWASAN='["gatsu", "thamrin", "ancol", "pejaten"]' \
   --name brin-client-count \
-  nojinnojs/brin-client-count:latest
-
-# Or with env file (RECOMMENDED)
-docker run -d -p 3000:3000 --env-file .env --name brin-client-count nojinnojs/brin-client-count:latest
+  brin-client-count
 
 # Example with additional locations
 docker run -d -p 3000:3000 \
-  -e API_URL=192.168.1.100 \
+  -e API_URL=203.0.113.20 \
   -e API_PORT=8080 \
   -e KAWASAN='["gatsu", "thamrin", "ancol", "pejaten", "agam"]' \
   --name brin-client-count \
@@ -256,7 +257,7 @@ docker pull nojinnojs/brin-client-count:latest
 
 # 3. Create environment file
 cat > .env << EOF
-API_URL=10.13.222.10
+API_URL=203.0.113.10
 API_PORT=5010
 KAWASAN=["gatsu", "thamrin", "ancol", "pejaten"]
 EOF
@@ -290,14 +291,14 @@ cd brin-client-count
 
 # 4. Create environment file
 cat > .env << EOF
-API_URL=10.13.222.10
+API_URL=203.0.113.10
 API_PORT=5010
 KAWASAN=["gatsu", "thamrin", "ancol", "pejaten"]
 EOF
 
 # 5. Build and run (with build arguments)
 docker build \
-  --build-arg NEXT_PUBLIC_API_URL=10.13.222.10 \
+  --build-arg NEXT_PUBLIC_API_URL=203.0.113.10 \
   --build-arg NEXT_PUBLIC_API_PORT=5010 \
   --build-arg NEXT_PUBLIC_KAWASAN='["gatsu", "thamrin", "ancol", "pejaten"]' \
   -t brin-client-count .
@@ -371,7 +372,7 @@ docker logs -f brin-client-count
 #### Secure Build Process
 ```bash
 # Set environment variables for build
-export NEXT_PUBLIC_API_URL=10.13.222.10
+export NEXT_PUBLIC_API_URL=203.0.113.10
 export NEXT_PUBLIC_API_PORT=5010
 export NEXT_PUBLIC_KAWASAN='["gatsu", "thamrin", "ancol", "pejaten"]'
 
@@ -380,7 +381,7 @@ npm run docker:build
 
 # Or build directly with build args
 docker build \
-  --build-arg NEXT_PUBLIC_API_URL=10.13.222.10 \
+  --build-arg NEXT_PUBLIC_API_URL=203.0.113.10 \
   --build-arg NEXT_PUBLIC_API_PORT=5010 \
   --build-arg NEXT_PUBLIC_KAWASAN='["gatsu", "thamrin", "ancol", "pejaten"]' \
   -t brin-client-count .
@@ -397,7 +398,7 @@ npm run docker:push
 **Example:**
 ```bash
 docker build \
-  --build-arg NEXT_PUBLIC_API_URL=192.168.1.100 \
+  --build-arg NEXT_PUBLIC_API_URL=203.0.113.20 \
   --build-arg NEXT_PUBLIC_API_PORT=8080 \
   --build-arg NEXT_PUBLIC_KAWASAN='["gatsu", "thamrin", "ancol", "pejaten", "agam"]' \
   -t brin-client-count .
@@ -414,7 +415,7 @@ docker build \
 ```bash
 # Easiest way - just run from Docker Hub
 docker run -d -p 3000:3000 \
-  -e API_URL=10.13.222.10 \
+  -e API_URL=203.0.113.10 \
   -e API_PORT=5010 \
   -e KAWASAN='["gatsu", "thamrin", "ancol", "pejaten"]' \
   --name brin-client-count \
@@ -439,7 +440,7 @@ docker-compose --profile dev up --build
 # Method 1: From Docker Hub (Fastest)
 docker pull nojinnojs/brin-client-count:latest
 docker run -d -p 3000:3000 --restart unless-stopped \
-  -e API_URL=10.13.222.10 \
+  -e API_URL=203.0.113.10 \
   -e API_PORT=5010 \
   -e KAWASAN='["gatsu", "thamrin", "ancol", "pejaten"]' \
   --name brin-client-count \
@@ -449,7 +450,7 @@ docker run -d -p 3000:3000 --restart unless-stopped \
 git clone https://github.com/NojinNojs/brin-client-count.git
 cd brin-client-count
 docker build \
-  --build-arg NEXT_PUBLIC_API_URL=10.13.222.10 \
+  --build-arg NEXT_PUBLIC_API_URL=203.0.113.10 \
   --build-arg NEXT_PUBLIC_API_PORT=5010 \
   --build-arg NEXT_PUBLIC_KAWASAN='["gatsu", "thamrin", "ancol", "pejaten"]' \
   -t brin-client-count .
@@ -546,7 +547,7 @@ newgrp docker
 # Solution: Provide all required build arguments
 
 # Set environment variables first
-export NEXT_PUBLIC_API_URL=10.13.222.10
+export NEXT_PUBLIC_API_URL=203.0.113.10
 export NEXT_PUBLIC_API_PORT=5010
 export NEXT_PUBLIC_KAWASAN='["gatsu", "thamrin", "ancol", "pejaten"]'
 
@@ -555,7 +556,7 @@ npm run docker:build
 
 # Or build directly with arguments
 docker build \
-  --build-arg NEXT_PUBLIC_API_URL=10.13.222.10 \
+  --build-arg NEXT_PUBLIC_API_URL=203.0.113.10 \
   --build-arg NEXT_PUBLIC_API_PORT=5010 \
   --build-arg NEXT_PUBLIC_KAWASAN='["gatsu", "thamrin", "ancol", "pejaten"]' \
   -t brin-client-count .
