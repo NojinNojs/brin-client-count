@@ -2,7 +2,7 @@ import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
   // Enable standalone output for Docker (only when building for Docker)
-  ...(process.env.DOCKER_BUILD === 'true' && { output: 'standalone' }),
+  ...(process.env.DOCKER_BUILD === 'true' ? { output: 'standalone' } : {}),
   
   // Environment variables for client-side
   env: {
