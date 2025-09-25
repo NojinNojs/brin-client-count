@@ -35,12 +35,13 @@ COPY . .
 ENV NEXT_TELEMETRY_DISABLED 1
 ENV DOCKER_BUILD=true
 
-# Build-time arguments with defaults
-ARG NEXT_PUBLIC_API_URL=10.13.222.10
-ARG NEXT_PUBLIC_API_PORT=5010
-ARG NEXT_PUBLIC_KAWASAN=["gatsu","ancol","pejaten"]
+# Build-time arguments (no defaults to prevent leaking sensitive data)
+ARG NEXT_PUBLIC_API_URL
+ARG NEXT_PUBLIC_API_PORT
+ARG NEXT_PUBLIC_KAWASAN
 
 # Set environment variables from build args
+# These will fail if not provided, preventing accidental leaks
 ENV NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL}
 ENV NEXT_PUBLIC_API_PORT=${NEXT_PUBLIC_API_PORT}
 ENV NEXT_PUBLIC_KAWASAN=${NEXT_PUBLIC_KAWASAN}

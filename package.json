@@ -9,8 +9,8 @@
     "lint": "eslint",
     "docker:dev": "docker-compose --profile dev up --build",
     "docker:prod": "docker run -d -p 3000:3000 --name brin-client-count nojinnojs/brin-client-count:latest",
-    "docker:build": "docker build -t brin-client-count .",
-    "docker:build:windows": "docker build -f Dockerfile.windows -t brin-client-count:windows .",
+    "docker:build": "docker build --build-arg NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-REPLACE_ME} --build-arg NEXT_PUBLIC_API_PORT=${NEXT_PUBLIC_API_PORT:-REPLACE_ME} --build-arg NEXT_PUBLIC_KAWASAN=${NEXT_PUBLIC_KAWASAN:-[]} -t brin-client-count .",
+    "docker:build:windows": "docker build -f Dockerfile.windows --build-arg NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-REPLACE_ME} --build-arg NEXT_PUBLIC_API_PORT=${NEXT_PUBLIC_API_PORT:-REPLACE_ME} --build-arg NEXT_PUBLIC_KAWASAN=${NEXT_PUBLIC_KAWASAN:-[]} -t brin-client-count:windows .",
     "docker:push": "docker tag brin-client-count nojinnojs/brin-client-count:latest && docker push nojinnojs/brin-client-count:latest",
     "docker:stop": "docker stop brin-client-count && docker rm brin-client-count"
   },
