@@ -1,24 +1,14 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // Enable standalone output for Docker (only when building for Docker)
-  ...(process.env.DOCKER_BUILD === 'true' ? { output: 'standalone' } : {}),
-  
-  // Environment variables for client-side
-  env: {
-    NEXT_PUBLIC_API_URL: process.env.NEXT_PUBLIC_API_URL,
-    NEXT_PUBLIC_API_PORT: process.env.NEXT_PUBLIC_API_PORT,
-    NEXT_PUBLIC_KAWASAN: process.env.NEXT_PUBLIC_KAWASAN,
-  },
+  // Enable standalone output for Docker
+  output: 'standalone',
   
   // Enable experimental features for better performance
   experimental: {
     // Optimize package imports
     optimizePackageImports: ['recharts', 'lucide-react'],
   },
-  
-  // Fix Windows symlink issues
-  outputFileTracingRoot: undefined,
 
   // Image optimization
   images: {

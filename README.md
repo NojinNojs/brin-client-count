@@ -6,197 +6,133 @@ A modern, high-performance dashboard for monitoring BRIN client counts across di
 
 ## 🚀 Quick Start
 
-Choose your preferred method to run the application:
+### Prerequisites
+- Docker installed ([Download Docker](https://www.docker.com/get-started))
+- Git (for development)
 
-### 🐳 Option 1: Docker (Recommended - No Node.js required)
+### Development Environment
 
-**Install Docker first**: [Download Docker Desktop](https://www.docker.com/products/docker-desktop/)
-
-#### Production Mode
+#### Option 1: Docker Development (Recommended - No Node.js required)
 ```bash
-# Run on default port 3000
-docker run -d -p 3000:3000 --name brin-client-count nojinnojs/brin-client-count:latest
-
-# Or run on custom port (e.g., 3001)
-docker run -d -p 3001:3000 --name brin-client-count nojinnojs/brin-client-count:latest
-```
-
-#### Development Mode (for team development)
-```bash
-# Clone repository first
+# 1. Clone repository
 git clone https://github.com/NojinNojs/brin-client-count.git
 cd brin-client-count
 
-# Run development environment
-docker-compose --profile dev up --build
+# 2. Create .env file
+cp .env.example .env
+
+# 3. Edit .env with your values
+# NEXT_PUBLIC_API_URL="10.13.222.10"
+# NEXT_PUBLIC_API_PORT="5010"
+# NEXT_PUBLIC_KAWASAN='["gatsu","thamrin","ancol","pejaten","agam"]'
+
+# 4. Start development with hot reload
+npm run docker:dev
+
+# Access: http://localhost:3000
 ```
 
-### 💻 Option 2: Local Development (Traditional way)
-
-#### Prerequisites
-- Node.js 18+ ([Download here](https://nodejs.org/))
-- pnpm package manager (`npm install -g pnpm`)
-
-#### Installation
+#### Option 2: Traditional Node.js Development
 ```bash
-# Clone the repository
+# Prerequisites: Node.js 18+ and pnpm
+# Windows: Download from https://nodejs.org/
+# Linux: sudo apt install nodejs npm && npm install -g pnpm
+# Mac: brew install node && npm install -g pnpm
+
+# 1. Clone repository
+git clone https://github.com/NojinNojs/brin-client-count.git
+cd brin-client-count
+
+# 2. Install dependencies
+pnpm install
+
+# 3. Create .env file
+cp .env.example .env
+
+# 4. Edit .env with your values
+# NEXT_PUBLIC_API_URL="10.13.222.10"
+# NEXT_PUBLIC_API_PORT="5010"
+# NEXT_PUBLIC_KAWASAN='["gatsu","thamrin","ancol","pejaten","agam"]'
+
+# 5. Start development server
+pnpm dev
+
+# 6. Build for production
+pnpm build
+
+# 7. Start production server
+pnpm start
+
+# Access: http://localhost:3000
+```
+
+### Production Environment
+
+```bash
+# 1. Build production image
+npm run docker:build
+
+# 2. Push to Docker Hub
+npm run docker:push
+
+# 3. Run on server with environment variables
+docker run -d -p 3000:3000 \
+  -e NEXT_PUBLIC_API_URL="10.13.222.10" \
+  -e NEXT_PUBLIC_API_PORT="5010" \
+  -e NEXT_PUBLIC_KAWASAN='["gatsu", "thamrin", "ancol", "pejaten", "agam"]' \
+  --name brin-client-count \
+  nojinnojs/brin-client-count:latest
+```
+
+## ⚙️ Environment Configuration
+
+### .env.example
+```env
+# API Configuration (Client-side accessible)
+NEXT_PUBLIC_API_URL="10.13.222.10"
+NEXT_PUBLIC_API_PORT="5010"
+
+# Available Kawasan/Locations (JSON array format)
+NEXT_PUBLIC_KAWASAN='["gatsu","thamrin","ancol","pejaten","agam"]'
+```
+
+**Note:** All environment variables are mandatory and must use `NEXT_PUBLIC_` prefix for client-side access. The application will throw an error if any are missing or invalid.
+
+## 🔧 Available Scripts
+
+```json
+{
+  "dev": "next dev --turbopack",
+  "build": "next build --turbopack", 
+  "start": "next start",
+  "lint": "eslint",
+  "docker:dev": "docker-compose up --build",
+  "docker:build": "docker build --target prod -t brin-client-count .",
+  "docker:push": "docker tag brin-client-count nojinnojs/brin-client-count:latest && docker push nojinnojs/brin-client-count:latest"
+}
+```
+
+## 🛠 For Developers
+
+### Development Workflow
+
+#### Option 1: Docker Development (Recommended - No Node.js required)
+```bash
+# Clone and start development
 git clone https://github.com/NojinNojs/brin-client-count.git
 cd brin-client-count
 
 # Copy environment template
 cp .env.example .env
 
-# Install dependencies
-pnpm install
+# Edit .env with your values
+# Start development with hot reload
+npm run docker:dev
 
-# Start development server
-pnpm dev
+# Access: http://localhost:3000
 ```
 
-#### Production Build
-```bash
-# Build and start production server
-pnpm build
-pnpm start
-```
-
-## ⚙️ Environment Configuration
-
-### Environment Variables
-
-⚠️ **Required Configuration** - The application will not start without these environment variables.
-
-Create `.env` file in root directory:
-
-```bash
-# Create .env file with your configuration
-cat > .env << EOF
-# Build-time arguments for Docker (REQUIRED for building)
-# These are NEXT_PUBLIC_* variables used by the client and must be passed as docker build-args
-NEXT_PUBLIC_API_URL=203.0.113.10
-NEXT_PUBLIC_API_PORT=5010
-NEXT_PUBLIC_KAWASAN=["gatsu", "thamrin", "ancol", "pejaten"]
-EOF
-```
-
-**Required Configuration:**
-
-```env
-# Build-time arguments for Docker (REQUIRED for building)
-# These are NEXT_PUBLIC_* variables used by the client and must be passed as docker build-args
-NEXT_PUBLIC_API_URL=203.0.113.10
-NEXT_PUBLIC_API_PORT=5010
-NEXT_PUBLIC_KAWASAN=["gatsu", "thamrin", "ancol", "pejaten"]
-```
-
-**Note:** All environment variables are mandatory. The application will throw an error if any are missing or invalid.
-
-⚠️ **Important**: These are build-time `NEXT_PUBLIC_*` variables that are baked into the client bundle during Docker build. They cannot be changed at runtime - you must rebuild the Docker image to change these values.
-
-### Docker Build vs Runtime Variables
-
-**Build-time variables** (NEXT_PUBLIC_*): Must be provided during `docker build` and are baked into the client bundle.
-
-**Runtime variables** (API_URL, API_PORT, KAWASAN): Used by the server-side application and can be provided during `docker run`.
-
-```bash
-# Build with build-time variables
-docker build \
-  --build-arg NEXT_PUBLIC_API_URL=203.0.113.10 \
-  --build-arg NEXT_PUBLIC_API_PORT=5010 \
-  --build-arg NEXT_PUBLIC_KAWASAN='["gatsu", "thamrin", "ancol", "pejaten"]' \
-  -t brin-client-count .
-
-# Run with runtime variables (if needed by server-side code)
-docker run -d -p 3000:3000 \
-  -e API_URL=203.0.113.10 \
-  -e API_PORT=5010 \
-  -e KAWASAN='["gatsu", "thamrin", "ancol", "pejaten"]' \
-  --name brin-client-count \
-  brin-client-count
-
-# Example with additional locations
-docker run -d -p 3000:3000 \
-  -e API_URL=203.0.113.20 \
-  -e API_PORT=8080 \
-  -e KAWASAN='["gatsu", "thamrin", "ancol", "pejaten", "agam"]' \
-  --name brin-client-count \
-  nojinnojs/brin-client-count:latest
-```
-
-## 📖 Docker Commands Explained
-
-### Docker Flags Explanation
-- `-d` = Run in detached mode (background)
-- `-p 3001:3000` = Map port 3001 (host) to 3000 (container)
-- `--name` = Give container a custom name for easy management
-- `-e KEY=value` = Set environment variable
-- `--env-file .env` = Load environment variables from file
-
-### Basic Docker Commands
-```bash
-# Check running containers
-docker ps
-
-# Stop and remove container
-docker stop brin-client-count
-docker rm brin-client-count
-
-# View container logs
-docker logs brin-client-count
-
-# Run on different port
-docker run -d -p 8080:3000 --name brin-client-count nojinnojs/brin-client-count:latest
-```
-
-## 🌍 Multi-Platform Support
-
-### Windows
-```cmd
-# PowerShell
-docker run -d -p 3000:3000 --name brin-client-count nojinnojs/brin-client-count:latest
-```
-
-### macOS/Linux
-```bash
-# Terminal
-docker run -d -p 3000:3000 --name brin-client-count nojinnojs/brin-client-count:latest
-```
-
-## 🛠 For Developers
-
-### Cross-Platform Development (Windows/Linux/Mac)
-
-#### Option 1: Docker Development (No Node.js installation needed)
-```bash
-# 1. Clone repository
-git clone https://github.com/NojinNojs/brin-client-count.git
-cd brin-client-count
-
-# 2. Copy and configure environment
-cp .env.example .env
-# Edit .env file with your settings
-
-# 3. Start development environment with hot reload
-docker-compose --profile dev up --build
-
-# 4. Access at http://localhost:3000
-```
-
-#### Option 2: Direct Docker Hub (Simplest)
-```bash
-# Run directly from Docker Hub (no cloning needed)
-docker run -d -p 3000:3000 \
-  -e API_URL=10.13.222.10 \
-  -e API_PORT=5010 \
-  -e KAWASAN='["gatsu", "thamrin", "ancol", "pejaten"]' \
-  --name brin-client-count \
-  nojinnojs/brin-client-count:latest
-
-# Access at http://localhost:3000
-```
-
-#### Option 3: Traditional Node.js Development
+#### Option 2: Traditional Node.js Development
 ```bash
 # Prerequisites: Node.js 18+ and pnpm
 # Windows: Download from https://nodejs.org/
@@ -214,37 +150,35 @@ cp .env.example .env
 # Install dependencies
 pnpm install
 
-# Start development server
+# Start development server (reads .env automatically)
 pnpm dev
 
-# Build for production
+# Build for production (reads .env automatically)
 pnpm build
+
+# Start production server (reads .env automatically)
+pnpm start
 ```
 
 ### Team Development Workflow
 ```bash
-# Set the default branch (adjust as needed for your repository)
-export BRANCH_NAME=master  # or 'main' if your repo uses main as default
-
 # 1. Developer makes changes
 git add .
 git commit -m "Add new feature"
-git push origin $BRANCH_NAME
+git push origin main
 
 # 2. Build and push to Docker Hub (if needed)
 npm run docker:build
 npm run docker:push
 
 # 3. Other team members pull latest
-git pull origin $BRANCH_NAME
-docker-compose --profile dev up --build
+git pull origin main
+npm run docker:dev
 ```
 
 ## 🚀 For Production/Server Deployment
 
 ### Ubuntu Server Deployment
-
-⚠️ **Environment variables are required for all deployments**
 
 #### Method 1: Deploy from Docker Hub (Recommended - Fastest)
 
@@ -255,24 +189,19 @@ ssh user@your-server-ip
 # 2. Pull latest image from Docker Hub
 docker pull nojinnojs/brin-client-count:latest
 
-# 3. Create environment file
-cat > .env << EOF
-API_URL=203.0.113.10
-API_PORT=5010
-KAWASAN=["gatsu", "thamrin", "ancol", "pejaten"]
-EOF
-
-# 4. Run container with restart policy
+# 3. Run container with environment variables
 docker run -d -p 3000:3000 --restart unless-stopped \
-  --env-file .env \
+  -e NEXT_PUBLIC_API_URL="10.13.222.10" \
+  -e NEXT_PUBLIC_API_PORT="5010" \
+  -e NEXT_PUBLIC_KAWASAN='["gatsu", "thamrin", "ancol", "pejaten", "agam"]' \
   --name brin-client-count \
   nojinnojs/brin-client-count:latest
 
-# 5. Verify deployment
+# 4. Verify deployment
 docker ps
 docker logs brin-client-count
 
-# 6. Access application
+# 5. Access application
 # http://your-server-ip:3000
 ```
 
@@ -289,21 +218,14 @@ sudo apt update && sudo apt install git -y
 git clone https://github.com/NojinNojs/brin-client-count.git
 cd brin-client-count
 
-# 4. Create environment file
-cat > .env << EOF
-API_URL=203.0.113.10
-API_PORT=5010
-KAWASAN=["gatsu", "thamrin", "ancol", "pejaten"]
-EOF
+# 4. Build production image
+npm run docker:build
 
-# 5. Build and run (with build arguments)
-docker build \
-  --build-arg NEXT_PUBLIC_API_URL=203.0.113.10 \
-  --build-arg NEXT_PUBLIC_API_PORT=5010 \
-  --build-arg NEXT_PUBLIC_KAWASAN='["gatsu", "thamrin", "ancol", "pejaten"]' \
-  -t brin-client-count .
+# 5. Run with environment variables
 docker run -d -p 3000:3000 --restart unless-stopped \
-  --env-file .env \
+  -e NEXT_PUBLIC_API_URL="10.13.222.10" \
+  -e NEXT_PUBLIC_API_PORT="5010" \
+  -e NEXT_PUBLIC_KAWASAN='["gatsu", "thamrin", "ancol", "pejaten", "agam"]' \
   --name brin-client-count \
   brin-client-count
 
@@ -335,7 +257,9 @@ docker pull nojinnojs/brin-client-count:latest
 docker stop brin-client-count
 docker rm brin-client-count
 docker run -d -p 3000:3000 --restart unless-stopped \
-  --env-file .env \
+  -e NEXT_PUBLIC_API_URL="10.13.222.10" \
+  -e NEXT_PUBLIC_API_PORT="5010" \
+  -e NEXT_PUBLIC_KAWASAN='["gatsu", "thamrin", "ancol", "pejaten", "agam"]' \
   --name brin-client-count \
   nojinnojs/brin-client-count:latest
 ```
@@ -345,7 +269,9 @@ docker run -d -p 3000:3000 --restart unless-stopped \
 ```bash
 # Run on port 8080 instead of 3000
 docker run -d -p 8080:3000 --restart unless-stopped \
-  --env-file .env \
+  -e API_URL="10.13.222.10" \
+  -e API_PORT="5010" \
+  -e KAWASAN='["gatsu", "thamrin", "ancol", "pejaten", "agam"]' \
   --name brin-client-count \
   nojinnojs/brin-client-count:latest
 
@@ -365,45 +291,6 @@ docker stats brin-client-count
 docker logs -f brin-client-count
 ```
 
-### Build and Push Your Own Image
-
-⚠️ **Security Note**: The Dockerfile requires build arguments to prevent leaking sensitive data into the client bundle.
-
-#### Secure Build Process
-```bash
-# Set environment variables for build
-export NEXT_PUBLIC_API_URL=203.0.113.10
-export NEXT_PUBLIC_API_PORT=5010
-export NEXT_PUBLIC_KAWASAN='["gatsu", "thamrin", "ancol", "pejaten"]'
-
-# Build with environment variables
-npm run docker:build
-
-# Or build directly with build args
-docker build \
-  --build-arg NEXT_PUBLIC_API_URL=203.0.113.10 \
-  --build-arg NEXT_PUBLIC_API_PORT=5010 \
-  --build-arg NEXT_PUBLIC_KAWASAN='["gatsu", "thamrin", "ancol", "pejaten"]' \
-  -t brin-client-count .
-
-# Push to Docker Hub (requires login)
-npm run docker:push
-```
-
-#### Build Arguments Required
-- `NEXT_PUBLIC_API_URL`: Your API server URL
-- `NEXT_PUBLIC_API_PORT`: Your API server port
-- `NEXT_PUBLIC_KAWASAN`: JSON array of available locations
-
-**Example:**
-```bash
-docker build \
-  --build-arg NEXT_PUBLIC_API_URL=203.0.113.20 \
-  --build-arg NEXT_PUBLIC_API_PORT=8080 \
-  --build-arg NEXT_PUBLIC_KAWASAN='["gatsu", "thamrin", "ancol", "pejaten", "agam"]' \
-  -t brin-client-count .
-```
-
 ## 📊 Access Points
 
 - **Application**: http://localhost:3000 (or your custom port)
@@ -415,9 +302,9 @@ docker build \
 ```bash
 # Easiest way - just run from Docker Hub
 docker run -d -p 3000:3000 \
-  -e API_URL=203.0.113.10 \
-  -e API_PORT=5010 \
-  -e KAWASAN='["gatsu", "thamrin", "ancol", "pejaten"]' \
+  -e NEXT_PUBLIC_API_URL="10.13.222.10" \
+  -e NEXT_PUBLIC_API_PORT="5010" \
+  -e NEXT_PUBLIC_KAWASAN='["gatsu", "thamrin", "ancol", "pejaten", "agam"]' \
   --name brin-client-count \
   nojinnojs/brin-client-count:latest
 
@@ -429,8 +316,17 @@ docker run -d -p 3000:3000 \
 # Clone and develop
 git clone https://github.com/NojinNojs/brin-client-count.git
 cd brin-client-count
+
+# Copy environment template
 cp .env.example .env
-docker-compose --profile dev up --build
+
+# Edit .env with your values
+# Option 1: Docker development (recommended)
+npm run docker:dev
+
+# Option 2: Traditional development
+pnpm install
+pnpm dev
 
 # Access: http://localhost:3000
 ```
@@ -440,38 +336,26 @@ docker-compose --profile dev up --build
 # Method 1: From Docker Hub (Fastest)
 docker pull nojinnojs/brin-client-count:latest
 docker run -d -p 3000:3000 --restart unless-stopped \
-  -e API_URL=203.0.113.10 \
-  -e API_PORT=5010 \
-  -e KAWASAN='["gatsu", "thamrin", "ancol", "pejaten"]' \
+  -e NEXT_PUBLIC_API_URL="10.13.222.10" \
+  -e NEXT_PUBLIC_API_PORT="5010" \
+  -e NEXT_PUBLIC_KAWASAN='["gatsu", "thamrin", "ancol", "pejaten", "agam"]' \
   --name brin-client-count \
   nojinnojs/brin-client-count:latest
 
-# Method 2: From GitHub (with build args)
+# Method 2: From GitHub (Build Required)
 git clone https://github.com/NojinNojs/brin-client-count.git
 cd brin-client-count
-docker build \
-  --build-arg NEXT_PUBLIC_API_URL=203.0.113.10 \
-  --build-arg NEXT_PUBLIC_API_PORT=5010 \
-  --build-arg NEXT_PUBLIC_KAWASAN='["gatsu", "thamrin", "ancol", "pejaten"]' \
-  -t brin-client-count .
+
+# Build production image
+npm run docker:build
+
+# Run with environment variables
 docker run -d -p 3000:3000 --restart unless-stopped \
-  --env-file .env \
+  -e API_URL="10.13.222.10" \
+  -e API_PORT="5010" \
+  -e KAWASAN='["gatsu", "thamrin", "ancol", "pejaten", "agam"]' \
   --name brin-client-count \
   brin-client-count
-```
-
-## 🔧 Essential Scripts
-
-```json
-{
-  "scripts": {
-    "dev": "pnpm dev",
-    "build": "pnpm build", 
-    "docker:dev": "docker-compose --profile dev up --build",
-    "docker:prod": "docker run -d -p 3000:3000 --name brin-client-count nojinnojs/brin-client-count:latest",
-    "docker:stop": "docker stop brin-client-count && docker rm brin-client-count"
-  }
-}
 ```
 
 ## 🛡 Technologies Used
@@ -484,7 +368,7 @@ docker run -d -p 3000:3000 --restart unless-stopped \
 
 ## 🔒 Security Features
 
-- **No Hard-coded Secrets**: Dockerfile requires build arguments to prevent leaking sensitive data
+- **No Hard-coded Secrets**: All configuration via environment variables
 - **Environment-based Configuration**: All API endpoints and locations configurable via environment variables
 - **Build-time Validation**: Application fails to build if required environment variables are missing
 - **Client-side Safety**: No internal network details embedded in client bundle
@@ -492,31 +376,6 @@ docker run -d -p 3000:3000 --restart unless-stopped \
 ## 🆘 Troubleshooting
 
 ### Common Issues
-
-#### Windows Build Error (EPERM symlink)
-If you get symlink permission errors on Windows:
-
-**Solution 1: Use Windows Dockerfile**
-```bash
-# Build with Windows-compatible Dockerfile
-npm run docker:build:windows
-
-# Run Windows build
-docker run -d -p 3000:3000 --name brin-client-count brin-client-count:windows
-```
-
-**Solution 2: Enable Developer Mode**
-1. Open Windows Settings
-2. Go to Update & Security → For developers
-3. Enable "Developer Mode"
-4. Restart your computer
-5. Try build again: `pnpm run build`
-
-**Solution 3: Run as Administrator**
-```bash
-# Run PowerShell as Administrator
-pnpm run build
-```
 
 #### Port already in use
 ```bash
@@ -541,37 +400,10 @@ newgrp docker
 - Check container logs: `docker logs brin-client-count`
 - Try different port: `docker run -d -p 3001:3000 --name brin-client-count nojinnojs/brin-client-count:latest`
 
-#### Docker build fails with "build argument not provided"
-```bash
-# Error: build argument NEXT_PUBLIC_API_URL not provided
-# Solution: Provide all required build arguments
-
-# Set environment variables first
-export NEXT_PUBLIC_API_URL=203.0.113.10
-export NEXT_PUBLIC_API_PORT=5010
-export NEXT_PUBLIC_KAWASAN='["gatsu", "thamrin", "ancol", "pejaten"]'
-
-# Then build
-npm run docker:build
-
-# Or build directly with arguments
-docker build \
-  --build-arg NEXT_PUBLIC_API_URL=203.0.113.10 \
-  --build-arg NEXT_PUBLIC_API_PORT=5010 \
-  --build-arg NEXT_PUBLIC_KAWASAN='["gatsu", "thamrin", "ancol", "pejaten"]' \
-  -t brin-client-count .
-```
-
-#### Application shows "REPLACE_ME" in API calls
-This means the build used placeholder values. Rebuild with proper environment variables:
-```bash
-# Rebuild with correct values
-docker build \
-  --build-arg NEXT_PUBLIC_API_URL=your-actual-api-url \
-  --build-arg NEXT_PUBLIC_API_PORT=your-actual-port \
-  --build-arg NEXT_PUBLIC_KAWASAN='["your", "actual", "locations"]' \
-  -t brin-client-count .
-```
+#### Environment variables not working
+- Check if .env file exists: `ls -la .env`
+- Verify environment variables: `cat .env`
+- For production, ensure environment variables are passed with `-e` flag
 
 ## 📝 License
 
